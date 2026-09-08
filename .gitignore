@@ -1,0 +1,24 @@
+# Dataset (fica no Google Drive, ~30 MB) — não versionar
+dataset_pecas/
+*.zip
+
+# Ambientes virtuais
+venv/
+.venv/
+env/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Modelos treinados
+*.h5
+*.keras
+*.pb
+
+# Sistema
+.DS_Store
+Thumbs.db
