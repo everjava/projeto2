@@ -1,5 +1,7 @@
 # Dataset (fica no Google Drive, ~30 MB) — não versionar
 dataset_pecas/
+def_front/
+ok_front/
 *.zip
 
 # Ambientes virtuais
@@ -14,10 +16,11 @@ env/
 __pycache__/
 *.py[cod]
 
-# Modelos treinados
+# Modelos treinados e saídas geradas
 *.h5
 *.keras
 *.pb
+resultados/
 
 # Sistema
 .DS_Store

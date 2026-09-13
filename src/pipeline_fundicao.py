@@ -30,11 +30,75 @@ SEMENTE = 123
 
 
 def localizar_pasta_classes(raiz):
-    """Encontra a pasta que contém uma subpasta por classe."""
+    """Encontra a pasta que contém uma subpasta por classe.
+
+    Procura recursivamente por 'def_front'/'ok_front' e, se houver mais de
+    uma candidata (ex.: train e test), prioriza a pasta chamada 'train'.
+    """
+    candidatos = []
     for caminho, subpastas, _ in os.walk(raiz):
         if any(pasta in subpastas for pasta in ("def_front", "ok_front")):
+            candidatos.append(caminho)
+
+    if not candidatos:
+        raise FileNotFoundError(
+            f"Não encontrei as pastas 'def_front'/'ok_front' a partir de: {raiz}"
+        )
+
+    for caminho in candidatos:
+        if os.path.basename(caminho).lower() == "train":
             return caminho
-    raise FileNotFoundError("Não encontrei as pastas 'def_front'/'ok_front'.")
+    return candidatos[0]
+
+
+def _tem_classes_diretas(caminho):
+    """Verifica se a pasta contém as subpastas de classe diretamente."""
+    return any(
+        os.path.isdir(os.path.join(caminho, classe))
+        for classe in ("def_front", "ok_front")
+    )
+
+
+def resolver_dataset(caminho):
+    """Resolve a pasta do dataset a partir de várias localizações prováveis.
+
+    Aceita um caminho explícito (--dataset) ou tenta automaticamente, nesta
+    ordem: a raiz do projeto, 'dataset_pecas' dentro dele, o diretório atual
+    e a pasta do script. Pastas com as classes diretamente têm prioridade;
+    a busca recursiva fica como último recurso.
+    """
+    if caminho:
+        if not os.path.isdir(caminho):
+            raise FileNotFoundError(f"A pasta informada em --dataset não existe: {caminho}")
+        return localizar_pasta_classes(caminho)
+
+    pasta_script = os.path.dirname(os.path.abspath(__file__))
+    raiz_projeto = os.path.dirname(pasta_script)
+    candidatos = [
+        raiz_projeto,
+        os.path.join(raiz_projeto, "dataset_pecas"),
+        os.getcwd(),
+        pasta_script,
+    ]
+
+    # 1) Preferência: pasta que contém as classes diretamente (sem recursão).
+    for candidato in candidatos:
+        if os.path.isdir(candidato) and _tem_classes_diretas(candidato):
+            return candidato
+
+    # 2) Último recurso: busca recursiva, incluindo a pasta acima do projeto.
+    for candidato in candidatos + [os.path.dirname(raiz_projeto)]:
+        if os.path.isdir(candidato):
+            try:
+                return localizar_pasta_classes(candidato)
+            except FileNotFoundError:
+                continue
+
+    raise FileNotFoundError(
+        "Não encontrei as pastas 'def_front'/'ok_front'. Coloque-as junto do "
+        "projeto (ex.: projeto2/def_front e projeto2/ok_front) ou use "
+        "--dataset CAMINHO."
+    )
 
 
 def analise_exploratoria(pasta_raiz, pasta_saida="resultados"):
@@ -68,7 +132,27 @@ def analise_exploratoria(pasta_raiz, pasta_saida="resultados"):
     print("EDA salva em", os.path.join(pasta_saida, "eda_pipeline_classico.png"))
 
 
+def detectar_classes(pasta_raiz):
+    """Lista apenas as pastas de classe.
+
+    Ignora outras pastas do projeto (src, docs, .git...) que, se fossem
+    interpretadas como classes, quebrariam o `label_mode='binary'`.
+    """
+    classes = [
+        classe
+        for classe in ("def_front", "ok_front")
+        if os.path.isdir(os.path.join(pasta_raiz, classe))
+    ]
+    if len(classes) != 2:
+        raise FileNotFoundError(
+            f"Esperava as pastas 'def_front' e 'ok_front' em {pasta_raiz}, "
+            f"mas encontrei: {classes}"
+        )
+    return classes
+
+
 def carregar_dados(pasta_raiz):
+    classes = detectar_classes(pasta_raiz)
     dados_treino = tf.keras.utils.image_dataset_from_directory(
         pasta_raiz,
         validation_split=0.2,
@@ -77,6 +161,7 @@ def carregar_dados(pasta_raiz):
         image_size=(ALTURA_IMG, LARGURA_IMG),
         batch_size=TAMANHO_LOTE,
         label_mode="binary",
+        class_names=classes,
     )
     dados_validacao = tf.keras.utils.image_dataset_from_directory(
         pasta_raiz,
@@ -86,6 +171,7 @@ def carregar_dados(pasta_raiz):
         image_size=(ALTURA_IMG, LARGURA_IMG),
         batch_size=TAMANHO_LOTE,
         label_mode="binary",
+        class_names=classes,
     )
     return dados_treino, dados_validacao
 
@@ -156,13 +242,13 @@ def main():
     parser = argparse.ArgumentParser(description="Pipeline de inspeção de peças.")
     parser.add_argument(
         "--dataset",
-        default="dataset_pecas",
-        help="Pasta raiz do dataset (contém def_front e ok_front).",
+        default=None,
+        help="Pasta raiz do dataset. Se omitido, detecta automaticamente.",
     )
     parser.add_argument("--epocas", type=int, default=20)
     args = parser.parse_args()
 
-    pasta_raiz = localizar_pasta_classes(args.dataset)
+    pasta_raiz = resolver_dataset(args.dataset)
     print("Pasta de classes:", pasta_raiz)
 
     analise_exploratoria(pasta_raiz)
