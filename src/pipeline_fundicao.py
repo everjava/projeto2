@@ -175,10 +175,19 @@ def carregar_dados(pasta_raiz):
         class_names=classes,
     )
 
-    # Otimização (aula 20/08): mantém em cache, embaralha e pré-carrega lotes.
-    dados_treino = dados_treino.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
-    dados_validacao = dados_validacao.cache().prefetch(buffer_size=AUTOTUNE)
-    return dados_treino, dados_validacao
+    # Otimização: embaralha e pré-carrega lotes para acelerar o treino.
+    # Obs.: após essas transformações o dataset deixa de expor `.class_names`,
+    # por isso devolvemos `classes` (obtido antes) separadamente.
+    #
+    # O `.cache()` foi REMOVIDO porque guarda todas as imagens decodificadas na
+    # RAM (~750 MB para 1300 imagens 224x224x3 em float32). Com pouca RAM livre,
+    # o sistema entra em swap e o treino fica MAIS LENTO. Em uma máquina com RAM
+    # sobrando, basta reativá-lo:
+    #   dados_treino = dados_treino.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+    #   dados_validacao = dados_validacao.cache().prefetch(buffer_size=AUTOTUNE)
+    dados_treino = dados_treino.shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+    dados_validacao = dados_validacao.prefetch(buffer_size=AUTOTUNE)
+    return dados_treino, dados_validacao, classes
 
 
 def construir_modelo():
@@ -258,8 +267,8 @@ def main():
 
     analise_exploratoria(pasta_raiz)
 
-    dados_treino, dados_validacao = carregar_dados(pasta_raiz)
-    print("Classes:", dados_treino.class_names)
+    dados_treino, dados_validacao, nomes_classes = carregar_dados(pasta_raiz)
+    print("Classes:", nomes_classes)
 
     modelo = construir_modelo()
     modelo.summary()
