@@ -27,6 +27,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 ALTURA_IMG, LARGURA_IMG = 224, 224
 TAMANHO_LOTE = 32
 SEMENTE = 123
+AUTOTUNE = tf.data.AUTOTUNE
 
 
 def localizar_pasta_classes(raiz):
@@ -173,6 +174,10 @@ def carregar_dados(pasta_raiz):
         label_mode="binary",
         class_names=classes,
     )
+
+    # Otimização (aula 20/08): mantém em cache, embaralha e pré-carrega lotes.
+    dados_treino = dados_treino.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+    dados_validacao = dados_validacao.cache().prefetch(buffer_size=AUTOTUNE)
     return dados_treino, dados_validacao
 
 

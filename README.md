@@ -85,15 +85,30 @@ overfitting ("boca do jacaré") e matriz de confusão (bônus).
 
 ## Resultados
 
+Treinamento executado com `image_dataset_from_directory` (1040 imagens de treino /
+260 de validação). O `EarlyStopping` disparou na época 17 e restaurou os pesos da
+melhor época (14).
+
 | Métrica | Valor |
 |---|---|
-| Acurácia de treino | _(preencher após executar)_ |
-| Acurácia de validação | _(preencher após executar)_ |
-| Épocas treinadas | _(preencher após executar)_ |
+| Melhor época | 14 |
+| Acurácia de treino (época 14) | 0,8279 |
+| Acurácia de validação (época 14) | **0,8923** |
+| Loss de treino (época 14) | 0,3815 |
+| Loss de validação (época 14) | **0,2542** |
+| Épocas treinadas | 17 (de 20) |
 
-**Diagnóstico de overfitting:** _(preencher após analisar os gráficos — as curvas de
-treino e validação andaram lado a lado (aprendizado saudável) ou a `val_loss`
-estagnou/subiu enquanto a `loss` caiu (overfitting)?)_
+**Diagnóstico de overfitting:** as curvas de treino e validação andaram próximas
+durante quase todo o treino. A `val_loss` atingiu o mínimo na época 14 (~0,25) e
+depois subiu (0,33 na época 17) enquanto a `loss` de treino continuou caindo —
+início de overfitting, corretamente contido pelo `EarlyStopping`
+(`restore_best_weights=True`). Resultado **saudável**, com ~89% de acurácia de
+validação (acima do mínimo de 60% exigido).
+
+**Artefatos gerados** (pasta `resultados/`, não versionada):
+- `eda_pipeline_classico.png` — etapas do processamento clássico (OpenCV)
+- `historico_treinamento.png` — curvas de Acurácia e Loss (Treino vs. Validação)
+- `inspetor_fundicao.keras` — modelo treinado
 
 ## Entregáveis
 
