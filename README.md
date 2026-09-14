@@ -22,20 +22,13 @@ Como o arquivo tem ~30 MB, ele **não é versionado** neste repositório. Ele fi
 Google Drive (link compartilhado no enunciado do projeto) e é extraído dentro do
 notebook via `zipfile`.
 
-Estrutura esperada (o notebook localiza automaticamente a pasta de classes):
-
-```
-dataset_pecas/
-├── ok_front/     # peças sem defeito
-└── def_front/    # peças com defeito
-```
 
 ## Estrutura do repositório
 
 ```
 projeto2/
-├── notebooks/
-│   └── inspecao_fundicao.ipynb   # Notebook principal (EDA + CNN)
+├── ok_front/     # peças sem defeito
+└── def_front/    # peças com defeito
 ├── src/
 │   └── pipeline_fundicao.py      # Versão script do pipeline
 ├── requirements.txt
@@ -56,6 +49,9 @@ projeto2/
 ```bash
 pip install -r requirements.txt
 python src/pipeline_fundicao.py --dataset /caminho/para/dataset_pecas --epocas 20
+
+ou os diretórios ok_front e def_front dentro de projeto2
+
 ```
 
 ## Pipeline

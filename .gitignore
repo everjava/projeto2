@@ -21,7 +21,8 @@ __pycache__/
 *.keras
 *.pb
 resultados/
-
+docs/
+notebooks/
 # Sistema
 .DS_Store
 Thumbs.db
