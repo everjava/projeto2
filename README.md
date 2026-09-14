@@ -50,7 +50,9 @@ projeto2/
 pip install -r requirements.txt
 python src/pipeline_fundicao.py --dataset /caminho/para/dataset_pecas --epocas 20
 
-ou os diretórios ok_front e def_front dentro de projeto2
+ou
+projeto2> python src/pipeline_fundicao.py
+#com os diretórios ok_front e def_front dentro de projeto2
 
 ```
 
