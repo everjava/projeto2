@@ -38,13 +38,7 @@ projeto2/
 
 ## Como executar
 
-### Opção 1 — Google Colab (recomendado)
-
-1. Abra `notebooks/inspecao_fundicao.ipynb` no Google Colab.
-2. Faça upload do `casting_line_512x512.zip` para o seu Drive (MyDrive).
-3. Execute as células em ordem.
-
-### Opção 2 — Script local
+### Script local
 
 ```bash
 pip install -r requirements.txt
